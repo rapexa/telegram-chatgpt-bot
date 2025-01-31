@@ -1,21 +1,40 @@
 package main
 
 import (
+	"log"
 	"telegram-chatgpt-bot.com/m/config"
-	"telegram-chatgpt-bot.com/m/handlers"
-	"telegram-chatgpt-bot.com/m/utils"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func main() {
+
 	// Load configuration
 	config.LoadEnv()
 
-	// Initialize logger
-	logger := utils.NewLogger()
-
-	// Start Telegram bot
-	err := handlers.StartBot(logger)
+	bot, err := tgbotapi.NewBotAPI(config.GetEnv("BOT_TOKEN"))
 	if err != nil {
-		logger.Fatal("Failed to start bot:", err)
+		log.Panic(err)
+	}
+
+	bot.Debug = true
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	updates := bot.GetUpdatesChan(u)
+
+	for update := range updates {
+		if update.Message == nil {
+			continue
+		}
+
+		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
+		if update.Message.Text == "/start" {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello! Welcome to my bot.")
+			bot.Send(msg)
+		}
 	}
 }
