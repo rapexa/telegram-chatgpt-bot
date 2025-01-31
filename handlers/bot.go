@@ -3,11 +3,13 @@ package handler
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/sirupsen/logrus"
+	"telegram-chatgpt-bot.com/m/appStrings"
 	"telegram-chatgpt-bot.com/m/config"
+	"telegram-chatgpt-bot.com/m/services"
 )
 
-// StartBot initializes and starts the Telegram bot
-func StartBot() {
+// startBot initializes and starts the Telegram bot
+func startBot() {
 	bot, err := tgbotapi.NewBotAPI(config.GetEnv("BOT_TOKEN"))
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to initialize Telegram bot")
@@ -22,18 +24,25 @@ func StartBot() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
+
+		logrus.Infof("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
 		if update.Message == nil {
 			continue
 		}
 
-		logrus.Infof("[%s] %s", update.Message.From.UserName, update.Message.Text)
+		var response string
 
 		if update.Message.Text == "/start" {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Hello! Welcome to my bot.")
-			_, err := bot.Send(msg)
-			if err != nil {
-				logrus.WithError(err).Error("Failed to send message")
-			}
+			response = appStrings.StartString
+		} else {
+			response = services.GetChatGPTResponse(update.Message.Text) // Get response from ChatGPT
+		}
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
+		_, err := bot.Send(msg)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to send message")
 		}
 	}
 }
