@@ -3,9 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"telegram-chatgpt-bot.com/m/config"
-
 	_ "github.com/go-sql-driver/mysql"
+	"telegram-chatgpt-bot.com/m/config"
 )
 
 // ConnectDB initializes the database connection

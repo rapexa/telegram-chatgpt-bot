@@ -2,23 +2,20 @@ package main
 
 import (
 	"telegram-chatgpt-bot.com/m/config"
-	"telegram-chatgpt-bot.com/m/database"
+	"telegram-chatgpt-bot.com/m/handlers"
 	"telegram-chatgpt-bot.com/m/utils"
 )
 
 func main() {
-
 	// Load configuration
 	config.LoadEnv()
 
 	// Initialize logger
 	logger := utils.NewLogger()
 
-	// Connect to database
-	db, err := database.ConnectDB()
+	// Start Telegram bot
+	err := handlers.StartBot(logger)
 	if err != nil {
-		logger.Fatal("Database connection failed:", err)
+		logger.Fatal("Failed to start bot:", err)
 	}
-	defer db.Close()
-
 }
